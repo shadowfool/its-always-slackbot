@@ -40,7 +40,7 @@ module.exports.sunny = (event, context, cb) => {
           method: 'POST',
           json: true,
           body: {
-            "text": "New Shitpost Alert!",
+            "text": "",
             "response_type": "in_channel",
             "attachments": [
               {
