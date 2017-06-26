@@ -20,17 +20,18 @@ service: aws-nodejs # NOTE: update this with your service name
 provider:
   name: aws
   runtime: nodejs6.10
+  memorySize: 128
 package:
  include:
    - node_modules/**
-   - include-me-dir/**
+   - ./Textile.ttf
 
 functions:
-  hello:
+  sunny:
     handler: handler.sunny
     events: 
       - http:
           path: sweetdee
-          method: post
+          method: POST
     environment:
-      variable1: value1
+      IMGUR_CLIENT_ID:  ${file(./.serverless.env.yml):${opt:stage}.IMGUR_CLIENT_ID}
