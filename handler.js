@@ -1,7 +1,9 @@
 'use strict';
 
 const request = require('request'),
-      gm = require('gm').subClass({ imageMagick: true });
+      gm = require('gm').subClass({ imageMagick: true }),
+      AWS = require('aws-sdk'),
+      db = new AWS.DynamoDB.DocumentClient();
 
 function parseQuery(qstr) {
     var query = {};
@@ -30,7 +32,7 @@ function _transformStringToFit(str) {
     return lines.join('\n');
 }
 
-module.exports.sunny = (event, context, cb) => {
+module.exports.generateTitleCard = (event, context, cb) => {
   let body = parseQuery(event.body),
   text = _transformStringToFit(body.text.replace(/\+/g, " ")),
   responseUrl = body.response_url,      
@@ -58,7 +60,6 @@ module.exports.sunny = (event, context, cb) => {
       .font('./Textile.ttf')
       .fontSize(30)
       .drawText(0, 0, text,'Center')
-      .border(2, 2).borderColor('#ff0000')
       .toBuffer('png', (err, buffer) =>  {
           let base64Encode = buffer.toString('base64'),
           options = {
@@ -81,3 +82,77 @@ module.exports.sunny = (event, context, cb) => {
   }
   uploadImageToImgur(text, postToSlack)
 };
+
+module.exports.generateAdultSwimCard = (event, context, cb) => {
+  let body = parseQuery(event.body),
+  text = _transformStringToFit(body.text.replace(/\+/g, " ")),
+  responseUrl = body.response_url,      
+  postToSlack = (linkToImage) => {
+        let options = {
+          url: responseUrl,
+          method: 'POST',
+          json: true,
+          body: {
+            "text": "",
+            "response_type": "in_channel",
+            "attachments": [
+              {
+                "title": "Adult Swim",
+                "image_url": `${linkToImage}`
+              }
+            ]
+          }
+        };
+        request(options, (e,d) => cb(null))
+  },
+  uploadImageToImgur = (str = 'fooo bar', callback = null) => {
+    gm( 500, 500, '#000' )
+      .fill('#fff')
+      .font('./hn.ttf')
+      .fontSize(30)
+      .drawText(0, 0, text,'Center')
+      .toBuffer('png', (err, buffer) =>  {
+          let base64Encode = buffer.toString('base64'),
+          options = {
+           url: 'https://api.imgur.com/3/image',
+           method: 'POST',
+           headers: {
+              'User-Agent': 'request',
+              'authorization': `Client-ID ${process.env.IMGUR_CLIENT_ID}`,
+           },
+          json: true,
+          body: {
+            type: 'base64',
+            image: base64Encode
+          }
+        }
+        request(options, (e, d) => {
+           callback(d.body.data.link)
+        })
+      });
+  }
+  uploadImageToImgur(text, postToSlack)
+};
+
+// module.exports.authorize = (event, context, cb) => {
+//   const dbParams = {
+//       TableName: 'sunnySlackbotTokenTable',
+//       Item: {
+//         team_id: team_id,
+//         access_token: access_token
+//     }
+//   },
+//   slackParams = {
+//     url: 'https://slack.com/api/oauth.access',
+//     json: true,
+//     method: 'POST',
+//     body: {
+//       client_id: process.env.SLACK_CLIENT_ID
+//       client_secret: process.env. SLACK_CLIENT_SECRET
+//       code:  
+//     }
+//   };
+//   db.put(dbParams).promise()
+//     .catch(e => console.log(e));
+//   request(slackParams, (e, d) => cb(null))
+// }
