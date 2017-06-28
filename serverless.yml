@@ -20,7 +20,7 @@ package:
  include:
    - node_modules/**
    - ./Textile.ttf
-   - ./hn.ttf
+   - ./hncb.ttf
 
 functions:
   generateTitleCard:

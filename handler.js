@@ -106,10 +106,10 @@ module.exports.generateAdultSwimCard = (event, context, cb) => {
         request(options, (e,d) => cb(null))
   },
   uploadImageToImgur = (str = 'fooo bar', callback = null) => {
-    gm( 500, 500, '#000' )
+    gm( 750, 500, '#000' )
       .fill('#fff')
-      .font('./hn.ttf')
-      .fontSize(30)
+      .font('./hncb.ttf')
+      .fontSize(24)
       .drawText(0, 0, text,'Center')
       .toBuffer('png', (err, buffer) =>  {
           let base64Encode = buffer.toString('base64'),
