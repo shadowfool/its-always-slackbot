@@ -109,7 +109,7 @@ module.exports.generateAdultSwimCard = (event, context, cb) => {
     gm( 750, 500, '#000' )
       .fill('#fff')
       .font('./hncb.ttf')
-      .fontSize(24)
+      .fontSize(26)
       .drawText(0, 0, text,'Center')
       .toBuffer('png', (err, buffer) =>  {
           let base64Encode = buffer.toString('base64'),
@@ -134,25 +134,46 @@ module.exports.generateAdultSwimCard = (event, context, cb) => {
   uploadImageToImgur(text, postToSlack)
 };
 
-// module.exports.authorize = (event, context, cb) => {
-//   const dbParams = {
-//       TableName: 'sunnySlackbotTokenTable',
-//       Item: {
-//         team_id: team_id,
-//         access_token: access_token
-//     }
-//   },
-//   slackParams = {
-//     url: 'https://slack.com/api/oauth.access',
-//     json: true,
-//     method: 'POST',
-//     body: {
-//       client_id: process.env.SLACK_CLIENT_ID
-//       client_secret: process.env. SLACK_CLIENT_SECRET
-//       code:  
-//     }
-//   };
-//   db.put(dbParams).promise()
-//     .catch(e => console.log(e));
-//   request(slackParams, (e, d) => cb(null))
-// }
+
+
+module.exports.authorize = (event, context, cb) => {
+  console.log(process.env.SLACK_CLIENT_ID, process.env.SLACK_CLIENT_SECRET)
+    const code = event.queryStringParameters.code,
+          slackParams = {
+            url: `https://slack.com/api/oauth.access?client_id=${process.env.SLACK_CLIENT_ID}&client_secret=${process.env.SLACK_CLIENT_SECRET}&code=${code}`,
+            method: 'GET'
+          };
+
+        request(slackParams, (e, d, b) => {
+
+           const body = JSON.parse(d.body),
+                 dbParams = {
+                    TableName: 'sunnySlackbotTokenTable',
+                    team_id: body.team_id,
+                    access_token: body.access_token
+                };
+
+            db.put(dbParams).promise()
+            .catch(e => console.log(e));
+
+            cb(null, {
+              statusCode: 200,
+              headers: {
+                'Content-Type': 'text/html'
+              },
+              body: `
+                  <!DOCTYPE html>
+                  <html>
+                    <head><title>It's Always Sunny In Slack</title></head>
+                    <body>
+                      <div>Sucessfuly Installed It's Always Sunny In Slack to ${ body.team_name }</div>
+                    </body>
+                  </html>
+                  `
+          })
+        })
+}
+
+module.exports.ping = (event, context, cb) => {
+  console.log("pong")
+}

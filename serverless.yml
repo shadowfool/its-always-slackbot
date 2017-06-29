@@ -5,7 +5,7 @@ service: its-always-sunny-in-slack
 provider:
   name: aws
   runtime: nodejs6.10
-  memorySize: 128
+  memorySize: 256
   # iamRoleStatements:
   #   - Effect: Allow
   #     Action:
@@ -23,6 +23,12 @@ package:
    - ./hncb.ttf
 
 functions:
+  ping: 
+    handler: handler.ping
+    events:
+      - http:
+          path: ping/
+          method: GET
   generateTitleCard:
     handler: handler.generateTitleCard
     events: 
@@ -39,45 +45,53 @@ functions:
           method: POST
     environment:
       IMGUR_CLIENT_ID:  ${file(./.serverless.env.yml):${opt:stage}.imgur.IMGUR_CLIENT_ID}
-  # authorize:
-  #   handler: handler.authorize
-  #   events: 
-  #     - http:
-  #         path: sunny/authorize
-  #         method: POST
-  #   environment:
-  #     SLACK_CLIENT_ID:  ${file(./.serverless.env.yml):${opt:stage}.slack.SLACK_CLIENT_ID}
-  #     SLACK_CLIENT_SECRET: ${file(./.serverless.env.yml):${opt:stage}.slack.SLACK_CLIENT_SECRET}
-  #     SLACK_VERIFICATION_TOKEN: ${file(./.serverless.env.yml):${opt:stage}.slack.SLACK_VERIFICATION_TOKEN}
-# resources:
-#   Resources:
-#     sunnySlackbotTokenTable:
-#       Type: AWS::DynamoDB::Table
-#       Properties:
-#         TableName: sunnySlackbotTokenTable
-#         AttributeDefinitions:
-#           - AttributeName: team_id
-#             AttributeType: S
-#         KeySchema:
-#           - AttributeName: team_id
-#             KeyType: HASH
-#         ProvisionedThroughput:
-#           ReadCapacityUnits: 1
-#           WriteCapacityUnits: 1
-#     DynamoDBIamPolicy:
-#       Type: AWS::IAM::Policy
-#       DependsOn: sunnySlackbotTokenTable
-#       Properties:
-#         PolicyName: lambda-dynamodb
-#         PolicyDocument:
-#           Version: '2012-10-17'
-#           Statement:
-#             - Effect: Allow
-#               Action:
-#                 - dynamodb:GetItem
-#                 - dynamodb:PutItem
-#                 - dynamodb:UpdateItem
-#                 - dynamodb:Query
-#               Resource: arn:aws:dynamodb:*:*:table/sunnySlackbotTokenTable
-#         Roles:
-#           - Ref: IamRoleLambdaExecution
+  authorize:
+    handler: handler.authorize
+    events: 
+      - http:
+          path: sunny/authorize
+          method: GET
+    environment:
+      SLACK_CLIENT_ID:  ${file(./.serverless.env.yml):${opt:stage}.slack.SLACK_CLIENT_ID}
+      SLACK_CLIENT_SECRET: ${file(./.serverless.env.yml):${opt:stage}.slack.SLACK_CLIENT_SECRET}
+      SLACK_VERIFICATION_TOKEN: ${file(./.serverless.env.yml):${opt:stage}.slack.SLACK_VERIFICATION_TOKEN}
+resources:
+  Resources:
+    pathmapping:
+      Type: AWS::ApiGateway::BasePathMapping
+      Properties:
+          BasePath: oauth2
+          DomainName: ${file(./.serverless.env.yml):${opt:stage}.aws.DOMAIN_NAME}
+          RestApiId: 
+              Ref: ApiGatewayRestApi
+          Stage: dev
+    sunnySlackbotTokenTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: sunnySlackbotTokenTable
+        AttributeDefinitions:
+          - AttributeName: team_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: team_id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+    DynamoDBIamPolicy:
+      Type: AWS::IAM::Policy
+      DependsOn: sunnySlackbotTokenTable
+      Properties:
+        PolicyName: lambda-dynamodb
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:Query
+              Resource: arn:aws:dynamodb:*:*:table/sunnySlackbotTokenTable
+        Roles:
+          - Ref: IamRoleLambdaExecution
