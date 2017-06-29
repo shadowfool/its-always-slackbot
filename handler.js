@@ -52,10 +52,10 @@ module.exports.generateTitleCard = (event, context, cb) => {
             ]
           }
         };
-        request(options, (e,d) => cb(null))
+        request(options)
   },
   uploadImageToImgur = (str = 'fooo bar', callback = null) => {
-    gm( 500, 500, '#000' )
+    gm( 750, 500, '#000' )
       .fill('#fff')
       .font('./Textile.ttf')
       .fontSize(30)
@@ -81,6 +81,7 @@ module.exports.generateTitleCard = (event, context, cb) => {
       });
   }
   uploadImageToImgur(text, postToSlack)
+  cb(null, {statusCode: 200})
 };
 
 module.exports.generateAdultSwimCard = (event, context, cb) => {
@@ -103,7 +104,7 @@ module.exports.generateAdultSwimCard = (event, context, cb) => {
             ]
           }
         };
-        request(options, (e,d) => cb(null))
+        request(options)
   },
   uploadImageToImgur = (str = 'fooo bar', callback = null) => {
     gm( 750, 500, '#000' )
@@ -132,6 +133,7 @@ module.exports.generateAdultSwimCard = (event, context, cb) => {
       });
   }
   uploadImageToImgur(text, postToSlack)
+  cb(null, {statusCode: 200})
 };
 
 
