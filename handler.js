@@ -13,28 +13,64 @@ function parseQuery(qstr) {
         query[decodeURIComponent(b[0])] = decodeURIComponent(b[1] || '');
     }
     return query;
-}
+};
 
-function _transformStringToFit(str) {
+function transformStringToFit(str) {
     let dividedString = str.split(' '),
      lines = [""],
      currentLine = 0;
 
     dividedString.forEach( (word) => {
-        if (lines[currentLine].length + word.length <= 26) {
-        lines[currentLine] = lines[currentLine] + " " + word;
-    } else {
-        currentLine = currentLine + 1;
-        lines[currentLine] = word;
-    }
+      if (lines[currentLine].length + word.length <= 26) {
+          lines[currentLine] = lines[currentLine] + " " + word;
+      } else {
+          currentLine = currentLine + 1;
+          lines[currentLine] = word;
+      }
     });
 
     return lines.join('\n');
+};
+
+function uploadImageToImgur = (str = 'fooo bar', callback = null, type = 'sunny') => {
+    let fontSize = 30,
+        fontPath = "./Textile.ttf";
+    if(type === 'adult'){
+      fontSize = 26
+      fontPath = "./hncb.ttf"
+    }
+
+    gm( 750, 500, '#000' )
+      .fill('#fff')
+      .font(fontPath)
+      .fontSize(fontSize)
+      .drawText(0, 0, text,'Center')
+      .toBuffer('png', (err, buffer) =>  {
+          let base64Encode = buffer.toString('base64'),
+          options = {
+           url: 'https://api.imgur.com/3/image',
+           method: 'POST',
+           headers: {
+              'User-Agent': 'request',
+              'authorization': `Client-ID ${process.env.IMGUR_CLIENT_ID}`,
+           },
+          json: true,
+          body: {
+            type: 'base64',
+            image: base64Encode
+          }
+        }
+        request(options, (e, d) => {
+           callback(d.body.data.link)
+        })
+      });
 }
+
+//TODO remake uploadImageToImgur to take inputs to switch context
 
 module.exports.generateTitleCard = (event, context, cb) => {
   let body = parseQuery(event.body),
-  text = _transformStringToFit(body.text.replace(/\+/g, " ")),
+  text = transformStringToFit(body.text.replace(/\+/g, " ")),
   responseUrl = body.response_url,      
   postToSlack = (linkToImage) => {
         let options = {
@@ -53,40 +89,15 @@ module.exports.generateTitleCard = (event, context, cb) => {
           }
         };
         request(options)
-  },
-  uploadImageToImgur = (str = 'fooo bar', callback = null) => {
-    gm( 750, 500, '#000' )
-      .fill('#fff')
-      .font('./Textile.ttf')
-      .fontSize(30)
-      .drawText(0, 0, text,'Center')
-      .toBuffer('png', (err, buffer) =>  {
-          let base64Encode = buffer.toString('base64'),
-          options = {
-           url: 'https://api.imgur.com/3/image',
-           method: 'POST',
-           headers: {
-              'User-Agent': 'request',
-              'authorization': `Client-ID ${process.env.IMGUR_CLIENT_ID}`,
-           },
-          json: true,
-          body: {
-            type: 'base64',
-            image: base64Encode
-          }
-        }
-        request(options, (e, d) => {
-           callback(d.body.data.link)
-        })
-      });
-  }
+  };
+
   uploadImageToImgur(text, postToSlack)
   cb(null, {statusCode: 200})
 };
 
 module.exports.generateAdultSwimCard = (event, context, cb) => {
   let body = parseQuery(event.body),
-  text = _transformStringToFit(body.text.replace(/\+/g, " ")),
+  text = transformStringToFit(body.text.replace(/\+/g, " ")),
   responseUrl = body.response_url,      
   postToSlack = (linkToImage) => {
         let options = {
@@ -105,41 +116,14 @@ module.exports.generateAdultSwimCard = (event, context, cb) => {
           }
         };
         request(options)
-  },
-  uploadImageToImgur = (str = 'fooo bar', callback = null) => {
-    gm( 750, 500, '#000' )
-      .fill('#fff')
-      .font('./hncb.ttf')
-      .fontSize(26)
-      .drawText(0, 0, text,'Center')
-      .toBuffer('png', (err, buffer) =>  {
-          let base64Encode = buffer.toString('base64'),
-          options = {
-           url: 'https://api.imgur.com/3/image',
-           method: 'POST',
-           headers: {
-              'User-Agent': 'request',
-              'authorization': `Client-ID ${process.env.IMGUR_CLIENT_ID}`,
-           },
-          json: true,
-          body: {
-            type: 'base64',
-            image: base64Encode
-          }
-        }
-        request(options, (e, d) => {
-           callback(d.body.data.link)
-        })
-      });
-  }
-  uploadImageToImgur(text, postToSlack)
+  };
+  uploadImageToImgur(text, postToSlack, 'adult')
   cb(null, {statusCode: 200})
 };
 
 
 
 module.exports.authorize = (event, context, cb) => {
-  console.log(process.env.SLACK_CLIENT_ID, process.env.SLACK_CLIENT_SECRET)
     const code = event.queryStringParameters.code,
           slackParams = {
             url: `https://slack.com/api/oauth.access?client_id=${process.env.SLACK_CLIENT_ID}&client_secret=${process.env.SLACK_CLIENT_SECRET}&code=${code}`,
