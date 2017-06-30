@@ -44,7 +44,7 @@ function uploadImageToImgur (str = 'fooo bar', callback = null, type = 'sunny') 
       .fill('#fff')
       .font(fontPath)
       .fontSize(fontSize)
-      .drawText(0, 0, text,'Center')
+      .drawText(0, 0, str,'Center')
       .toBuffer('png', (err, buffer) =>  {
           let base64Encode = buffer.toString('base64'),
           options = {
@@ -91,7 +91,7 @@ module.exports.generateTitleCard = (event, context, cb) => {
         request(options)
   };
 
-  uploadImageToImgur(text, postToSlack)
+  uploadImageToImgur(text, postToSlack, 'sunny')
   cb(null, {statusCode: 200})
 };
 
