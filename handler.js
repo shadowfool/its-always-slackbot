@@ -3,7 +3,7 @@
 const request = require('request'),
       gm = require('gm').subClass({ imageMagick: true }),
       AWS = require('aws-sdk'),
-      db = new AWS.DynamoDB.DocumentClient();
+      db = new AWS.DynamoDB;
 
 function parseQuery(qstr) {
     var query = {};
@@ -32,7 +32,7 @@ function transformStringToFit(str) {
     return lines.join('\n');
 };
 
-function uploadImageToImgur = (str = 'fooo bar', callback = null, type = 'sunny') => {
+function uploadImageToImgur (str = 'fooo bar', callback = null, type = 'sunny') {
     let fontSize = 30,
         fontPath = "./Textile.ttf";
     if(type === 'adult'){
@@ -128,19 +128,24 @@ module.exports.authorize = (event, context, cb) => {
           slackParams = {
             url: `https://slack.com/api/oauth.access?client_id=${process.env.SLACK_CLIENT_ID}&client_secret=${process.env.SLACK_CLIENT_SECRET}&code=${code}`,
             method: 'GET'
-          };
+          }
 
         request(slackParams, (e, d, b) => {
 
-           const body = JSON.parse(d.body),
-                 dbParams = {
-                    TableName: 'sunnySlackbotTokenTable',
-                    team_id: body.team_id,
-                    access_token: body.access_token
+          const body = JSON.parse(d.body),
+                dbParams = {
+                  Item: {
+                    "team_id": {
+                      S: body.team_id
+                    }, 
+                    "access_token": {
+                      S: body.access_token
+                    }
+                  }, 
+                  TableName: "sunnySlackbotTokenTable"
                 };
 
-            db.put(dbParams).promise()
-            .catch(e => console.log(e));
+            db.putItem(dbParams, (e,d) => console.log(e,d))
 
             cb(null, {
               statusCode: 200,
