@@ -1,5 +1,9 @@
 # its-always-slackbot
 
+## Basic Info 
+Creates It's Always Sunny in Philadelphia & Adult Swim style title cards in slack with imputed text. 
+
+## Setup
 To deploy this app yourself install/setup serverless framework + dependencies
 Create a file at the root directory called .serverless.env.yml w/ the following structure.
 
@@ -13,4 +17,4 @@ IMGUR_CLIENT_ID can be generated at: https://apidocs.imgur.com/
 
 ## Demo:
 
-[[ https://github.com/shadowfool/its-always-slackbot/raw/master/readmeAssets/sunnyDemo.gif | height = 100px ]]
+![demo](https://github.com/shadowfool/its-always-slackbot/raw/master/readmeAssets/sunnyDemo.gif)
