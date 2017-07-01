@@ -9,3 +9,8 @@ dev:
 ```
 
 IMGUR_CLIENT_ID can be generated at: https://apidocs.imgur.com/
+
+
+## Demo:
+
+[[ https://github.com/shadowfool/its-always-slackbot/raw/master/readmeAssets/sunnyDemo.gif | height = 100px ]]
