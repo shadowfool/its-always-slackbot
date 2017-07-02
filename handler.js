@@ -91,7 +91,7 @@ module.exports.generateTitleCard = (event, context, cb) => {
         request(options)
   };
 
-  uploadImageToImgur(text, postToSlack, 'sunny')
+  uploadImageToImgur("\"".concat(text.concat("\"")), postToSlack, 'sunny')
   cb(null, {statusCode: 200})
 };
 
