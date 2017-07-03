@@ -21,6 +21,8 @@ package:
    - node_modules/**
    - ./Textile.ttf
    - ./hncb.ttf
+ exclude:
+   - readmeAssets/**
 
 functions:
   ping: 

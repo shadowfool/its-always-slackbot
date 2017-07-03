@@ -90,9 +90,9 @@ module.exports.generateTitleCard = (event, context, cb) => {
         };
         request(options)
   };
-
-  uploadImageToImgur("\"".concat(text.concat("\"")), postToSlack, 'sunny')
-  cb(null, {statusCode: 200})
+  text = text.substr(1);
+  uploadImageToImgur("\"".concat(text.concat("\"")), postToSlack, 'sunny');
+  cb(null, {statusCode: 200});
 };
 
 module.exports.generateAdultSwimCard = (event, context, cb) => {
