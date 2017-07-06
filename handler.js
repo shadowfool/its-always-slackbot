@@ -4,8 +4,10 @@ const request = require('request'),
       gm = require('gm').subClass({ imageMagick: true }),
       AWS = require('aws-sdk'),
       db = new AWS.DynamoDB;
-
-function parseQuery(qstr) {
+/**
+Function to parse out query string parameters into object key pairs. 
+**/
+function parseQuery(qstr = '') {
     var query = {};
     var a = (qstr[0] === '?' ? qstr.substr(1) : qstr).split('&');
     for (var i = 0; i < a.length; i++) {
@@ -14,14 +16,17 @@ function parseQuery(qstr) {
     }
     return query;
 };
-
-function transformStringToFit(str) {
+/**
+Transforms a string into chunks seperated by a new line character restricted either 26 chars
+or by the maxLength agrument provided
+**/
+function transformStringToFit(str = '', maxLength = 26) {
     let dividedString = str.split(' '),
      lines = [""],
      currentLine = 0;
 
     dividedString.forEach( (word) => {
-      if (lines[currentLine].length + word.length <= 26) {
+      if (lines[currentLine].length + word.length <= maxLength) {
           lines[currentLine] = lines[currentLine] + " " + word;
       } else {
           currentLine = currentLine + 1;
@@ -31,8 +36,13 @@ function transformStringToFit(str) {
 
     return lines.join('\n');
 };
-
-function uploadImageToImgur (str = 'fooo bar', callback = null, type = 'sunny') {
+/**
+Function to both create an image with specificed parameters provided as arguemnts
+and upload said image to imgur. 
+returns nothing. However, it will call the link to the imgur image as the arguemnt
+to the provided callback function.
+**/
+function uploadImageToImgur (str = 'fooo bar', callback = () => {}, type = 'sunny') {
     let fontSize = 30,
         fontPath = "./Textile.ttf";
     if(type === 'adult'){
@@ -66,8 +76,10 @@ function uploadImageToImgur (str = 'fooo bar', callback = null, type = 'sunny') 
       });
 }
 
-//TODO remake uploadImageToImgur to take inputs to switch context
-
+/**
+AWS Lambda Function to create an It's Always Sunny In Philidelphia style title card
+with provided text.
+**/ 
 module.exports.generateTitleCard = (event, context, cb) => {
   let body = parseQuery(event.body),
   text = transformStringToFit(body.text.replace(/\+/g, " ")),
@@ -95,6 +107,10 @@ module.exports.generateTitleCard = (event, context, cb) => {
   cb(null, {statusCode: 200});
 };
 
+/**
+AWS Lambda Function to create an Adult Swim style title card
+with provided text.
+**/ 
 module.exports.generateAdultSwimCard = (event, context, cb) => {
   let body = parseQuery(event.body),
   text = transformStringToFit(body.text.replace(/\+/g, " ")),
@@ -122,7 +138,13 @@ module.exports.generateAdultSwimCard = (event, context, cb) => {
 };
 
 
-
+/**
+Authorizes Slack Teams to use the application with the click of 'Add to Slack' button.
+This is nessecary for distributed applications.
+Will save teamId and access_token generated at call time to a Dynamo DB instance as defined 
+in serverless.yml.
+Returns a html template that indicates a sucessful instalation.
+**/
 module.exports.authorize = (event, context, cb) => {
     const code = event.queryStringParameters.code,
           slackParams = {
