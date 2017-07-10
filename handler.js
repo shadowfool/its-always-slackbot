@@ -8,10 +8,10 @@ const request = require('request'),
 Function to parse out query string parameters into object key pairs. 
 **/
 function parseQuery(qstr = '') {
-    var query = {};
-    var a = (qstr[0] === '?' ? qstr.substr(1) : qstr).split('&');
+    let query = {},
+    a = (qstr[0] === '?' ? qstr.substr(1) : qstr).split('&');
     for (var i = 0; i < a.length; i++) {
-        var b = a[i].split('=');
+        let b = a[i].split('=');
         query[decodeURIComponent(b[0])] = decodeURIComponent(b[1] || '');
     }
     return query;
