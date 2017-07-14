@@ -36,6 +36,29 @@ function transformStringToFit(str = '', maxLength = 26) {
 
     return lines.join('\n');
 };
+
+function savePostToDB(link, text, type)
+{
+  let dbParams = {
+    Item: {
+      "link": {
+        S: link
+      }, 
+      "text": {
+        S: text
+      },
+      "type": {
+        S: type
+      },
+      "date": {
+        S: new Date().toString()
+      }
+    }, 
+    TableName: "sunnyPosts"
+  };
+  db.putItem(dbParams, (e,d) => console.log(e,d))
+}
+
 /**
 Function to both create an image with specificed parameters provided as arguemnts
 and upload said image to imgur. 
@@ -100,7 +123,8 @@ module.exports.generateTitleCard = (event, context, cb) => {
             ]
           }
         };
-        request(options)
+        savePostToDB(linkToImage, text, 'sunny');
+        request(options);
   };
   text = text.substr(1);
   uploadImageToImgur("\"".concat(text.concat("\"")), postToSlack, 'sunny');
@@ -131,6 +155,7 @@ module.exports.generateAdultSwimCard = (event, context, cb) => {
             ]
           }
         };
+        savePostToDB(linkToImage, text, 'adult');
         request(options)
   };
   uploadImageToImgur(text, postToSlack, 'adult')

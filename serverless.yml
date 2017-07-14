@@ -80,6 +80,19 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+    sunnyPosts:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: sunnyPosts
+        AttributeDefinitions:
+          - AttributeName: link
+            AttributeType: S
+        KeySchema:
+          - AttributeName: link
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
     DynamoDBIamPolicy:
       Type: AWS::IAM::Policy
       DependsOn: sunnySlackbotTokenTable
@@ -95,5 +108,13 @@ resources:
                 - dynamodb:UpdateItem
                 - dynamodb:Query
               Resource: arn:aws:dynamodb:*:*:table/sunnySlackbotTokenTable
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:Query
+                - dynamodb:Scan
+              Resource: arn:aws:dynamodb:*:*:table/sunnyPosts
         Roles:
           - Ref: IamRoleLambdaExecution
