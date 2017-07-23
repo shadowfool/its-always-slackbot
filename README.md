@@ -3,6 +3,8 @@
 ## Basic Info 
 Creates It's Always Sunny in Philadelphia & Adult Swim style title cards in slack with imputed text. 
 
+Slack integration available at: http://hottake.me/
+
 ## Setup
 To deploy this app yourself install/setup serverless framework + dependencies
 Create a file at the root directory called .serverless.env.yml w/ the following structure.
