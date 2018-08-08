@@ -57,6 +57,18 @@ functions:
       SLACK_CLIENT_ID:  ${file(./.serverless.env.yml):${opt:stage}.slack.SLACK_CLIENT_ID}
       SLACK_CLIENT_SECRET: ${file(./.serverless.env.yml):${opt:stage}.slack.SLACK_CLIENT_SECRET}
       SLACK_VERIFICATION_TOKEN: ${file(./.serverless.env.yml):${opt:stage}.slack.SLACK_VERIFICATION_TOKEN}
+  addLink: 
+    handler: handler.addLink
+    events:
+      -http:
+        path: sunny/addLink
+          method: POST
+  actionHandler:
+    handler: handler.actionHandler
+    events:
+      -http:
+        path: sunny/actionHandler
+          method: POST
 resources:
   Resources:
     pathmapping:
@@ -71,6 +83,19 @@ resources:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: sunnySlackbotTokenTable
+        AttributeDefinitions:
+          - AttributeName: team_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: team_id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+    linksTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: linksTable
         AttributeDefinitions:
           - AttributeName: team_id
             AttributeType: S
@@ -116,5 +141,13 @@ resources:
                 - dynamodb:Query
                 - dynamodb:Scan
               Resource: arn:aws:dynamodb:*:*:table/sunnyPosts
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:Query
+                - dynamodb:Scan
+              Resource: arn:aws:dynamodb:*:*:table/linksTable
         Roles:
           - Ref: IamRoleLambdaExecution

@@ -212,6 +212,11 @@ module.exports.authorize = (event, context, cb) => {
         })
 }
 
+
+module.exports.addLink = (event, context, cb) => {
+  
+}
+
 module.exports.ping = (event, context, cb) => {
   console.log("pong")
 }
