@@ -3,7 +3,12 @@
 const request = require('request'),
       gm = require('gm').subClass({ imageMagick: true }),
       AWS = require('aws-sdk'),
-      db = new AWS.DynamoDB;
+      db = new AWS.DynamoDB,
+      transformStringToFit = require('./utils').transformStringToFit,
+      tinder = require('./imageProcessors/').tinder,
+      sunny = require('./imageProcessors/').sunny,
+      adult = require('./imageProcessors/').adult;
+
 /**
 Function to parse out query string parameters into object key pairs. 
 **/
@@ -15,26 +20,6 @@ function parseQuery(qstr = '') {
         query[decodeURIComponent(b[0])] = decodeURIComponent(b[1] || '');
     }
     return query;
-};
-/**
-Transforms a string into chunks seperated by a new line character restricted either 26 chars
-or by the maxLength agrument provided
-**/
-function transformStringToFit(str = '', maxLength = 26) {
-    let dividedString = str.split(' '),
-     lines = [""],
-     currentLine = 0;
-
-    dividedString.forEach( (word) => {
-      if (lines[currentLine].length + word.length <= maxLength) {
-          lines[currentLine] = lines[currentLine] + " " + word;
-      } else {
-          currentLine = currentLine + 1;
-          lines[currentLine] = word;
-      }
-    });
-
-    return lines.join('\n');
 };
 
 function savePostToDB(link, text, type)
@@ -66,19 +51,21 @@ returns nothing. However, it will call the link to the imgur image as the arguem
 to the provided callback function.
 **/
 function uploadImageToImgur (str = 'fooo bar', callback = () => {}, type = 'sunny') {
-    let fontSize = 30,
-        fontPath = "./Textile.ttf";
-    if(type === 'adult'){
-      fontSize = 26
-      fontPath = "./hncb.ttf"
+    const fn;
+
+    switch( type ){
+      case 'adult': {
+        fn = adult;
+        break;
+      }
+      case 'tinder': {
+        fn = tinder;
+        break;
+      }
+      default: fn = sunny;
     }
 
-    gm( 750, 500, '#000' )
-      .fill('#fff')
-      .font(fontPath)
-      .fontSize(fontSize)
-      .drawText(0, 0, str,'Center')
-      .toBuffer('png', (err, buffer) =>  {
+    fn( str, (err, buffer) =>  {
           let base64Encode = buffer.toString('base64'),
           options = {
            url: 'https://api.imgur.com/3/image',
@@ -163,6 +150,35 @@ module.exports.generateAdultSwimCard = (event, context, cb) => {
 };
 
 
+module.exports.generateTinderCard = (event, context, cb) => {
+  let body = parseQuery(event.body),
+  text = transformStringToFit(body.text.replace(/\+/g, " ")),
+  responseUrl = body.response_url,      
+  postToSlack = (linkToImage) => {
+        let options = {
+          url: responseUrl,
+          method: 'POST',
+          json: true,
+          body: {
+            "text": "",
+            "response_type": "in_channel",
+            "attachments": [
+              {
+                "title": "Sexy Singles In Your Area",
+                "image_url": `${linkToImage}`
+              }
+            ]
+          }
+        };
+        savePostToDB(linkToImage, text, 'tinder');
+        request(options)
+  };
+  uploadImageToImgur(text, postToSlack, 'tinder')
+  cb(null, {statusCode: 200})
+};
+
+
+
 /**
 Authorizes Slack Teams to use the application with the click of 'Add to Slack' button.
 This is nessecary for distributed applications.
@@ -215,3 +231,5 @@ module.exports.authorize = (event, context, cb) => {
 module.exports.ping = (event, context, cb) => {
   console.log("pong")
 }
+
+module.exports.tinder = tinder;

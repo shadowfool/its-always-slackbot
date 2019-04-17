@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/shadowfool/its-always-slackbot#readme",
   "dependencies": {
-    "gm": "^1.23.0",
+    "gm": "1.23.0",
     "request": "^2.81.0"
   }
 }
